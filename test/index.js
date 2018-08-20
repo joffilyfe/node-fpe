@@ -1,56 +1,58 @@
-const test = require('tape');
 const fpe = require('../lib');
+const assert = require('assert');
+const expect = require('expect.js');
 
-test('missing password', t => {
-  t.plan(1);
-  t.throws(() => fpe());
-});
+describe('crytography', function() {
+  it('should throw a password error', function() {
+    expect(fpe).withArgs({}).to.throwException(/`password` is required/);
+  });
 
-test('encrypt-decrypt', t => {
-  t.plan(1);
-  const cipher = fpe({ password: 'secret' });
-  t.equal(cipher.decrypt(cipher.encrypt('12345')), '12345');
-});
+  it('should throw a password length error', function() {
+    expect(fpe).withArgs({password: '123456'}).to.throwException(/`password` must be 16 long/);
+  });
 
-test('different passwords', t => {
-  t.plan(1);
-  const cipher1 = fpe({ password: 'secret' });
-  const cipher2 = fpe({ password: 'other secret' });
-  t.notEqual(cipher1.encrypt('12345'), cipher2.encrypt('12345'));
-});
 
-test('ascii domain', t => {
-  var ascii = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'.split(
-    ''
-  );
-  t.plan(1);
-  const cipher = fpe({ password: 'secret', domain: ascii });
-  console.log(cipher.encrypt('ABBA'));
-  t.equal(cipher.decrypt(cipher.encrypt('ABBA')), 'ABBA');
-});
+  it('should throw a iv error', function() {
+    expect(fpe).withArgs({password: 'passwordpassword'}).to.throwException(/`iv` is required/);
+  });
 
-test('different domain', t => {
-  t.plan(1);
-  const cipher = fpe({ password: 'secret', domain: ['A', 'B', 'C', 'D', 'E'] });
-  t.equal(cipher.decrypt(cipher.encrypt('ABBA')), 'ABBA');
-});
+  it('should throw a iv length error', function() {
+    expect(fpe).withArgs({password: 'passwordpassword', iv: '1'}).to.throwException(/`iv` must be 16 long/);
+  });
 
-test('characters not in domain', t => {
-  t.plan(2);
-  const cipher = fpe({ password: 'secret', domain: ['A', 'B', 'C', 'D', 'E'] });
-  t.throws(() => cipher.encrypt('ABF'));
-  t.throws(() => cipher.decrypt('ABF'));
-});
+  it('should encrypt and return to the plain input', function() {
+    const cipher = fpe({ password: 'secretsecret1234', iv: 'secretsecret1234' });
+    const plainAgain = cipher.decrypt(cipher.encrypt('12345'));
+    expect(plainAgain).to.be('12345');
+  });
 
-test('different algorithm', t => {
-  t.plan(1);
-  const cipher = fpe({ password: 'secret', algorithm: 'aes192' });
-  t.equal(cipher.decrypt(cipher.encrypt('12345')), '12345');
-});
+  it('should has a different output with different passwords', function() {
+    const cipher1 = fpe({ password: 'secretsecret1234', iv: 'secretsecret1234' });
+    const cipher2 = fpe({ password: 'secretsecret1230', iv: 'secretsecret1234' });
+    expect(cipher1.encrypt('12345')).to.not.be(cipher2.encrypt('12345'));
+  });
 
-test('input not a string', t => {
-  t.plan(2);
-  const cipher = fpe({ password: 'secret' });
-  t.throws(() => cipher.encrypt(123));
-  t.throws(() => cipher.decrypt(123));
+  it('should use the ascii domain', function() {
+    var ascii = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKL{MNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'.split(
+      ''
+    );
+    const cipher = fpe({ password: 'secretsecret1234', iv: 'secretsecret1234', domain: ascii });
+    expect(cipher.decrypt(cipher.encrypt('ABBA'))).to.be('ABBA');
+  });
+
+  it('should throw not in domain exception', function() {
+    const domain = ['A', 'B', 'C', 'D', 'E'];
+    const cipher = fpe({ password: 'secretsecret1234', iv: 'secretsecret1234', domain: domain});
+    expect(cipher.encrypt).withArgs('ABF').to.throwException(/some of the input characters are not in the cipher\'s domain: \[A,B,C,D,E\]/);
+  });
+
+  // it('should use a different algorithm', function() {
+  //   const cipher = fpe({ password: 'secretsecret1234', iv: 'secretsecret1234', algorithm: 'aes192' });
+  //   expect(cipher.decrypt(cipher.encrypt('12345')).to.be('12345'));
+  // });
+
+  it('should have an input as string', function() {
+    const cipher = fpe({ password: 'secretsecret1234', iv: 'secretsecret1234' });
+    expect(cipher.encrypt).withArgs(123).to.throwException(/input is not a string/);
+  });
 });
