@@ -12,30 +12,30 @@ This library uses a simple FPE from a [prefix cipher](https://en.wikipedia.org/w
 
 ### Example:
 
-cipher with default domain ([0-9]) and default encryption alg (aes-256-cbc):
+cipher with default domain ([0-9]) and default encryption alg (aes-128-cbc):
 
 ```js
 const fpe = require('node-fpe');
-const cipher = fpe({ password: 'secret' });
+const cipher = fpe({ password: 'secret-16-len-pw', iv: Buffer('secret-16-len-iv', 'utf8').slice(0, 16) });
 
 cipher.encrypt('1234567');
-// '4185730'
+// '7924506'
 
-cipher.decrypt('4185730');
+cipher.decrypt('7924506');
 // '1234567'
 ```
 
-cipher with custom domain ([A-E]) and default encryption alg (aes-256-cbc):
+cipher with hexa domain ([A-E]) and default encryption alg (aes-128-cbc):
 
 ```js
 const fpe = require('node-fpe');
-const cipher = fpe({ password: 'secret', domain: ['A', 'B', 'C', 'D', 'E'] });
+const cipher = fpe({ password: 'secret', domain: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"] });
 
-cipher.encrypt('BEEBEE');
-// 'CBBCBB'
+cipher.encrypt('1234567');
+// '379F2D4'
 
-cipher.decrypt('CBBCBB');
-// 'BEEBEE'
+cipher.decrypt('379F2D4');
+// '1234567'
 ```
 
 ### Options
