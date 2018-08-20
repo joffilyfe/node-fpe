@@ -5,7 +5,7 @@
   "main": "lib",
   "scripts": {
     "test:prettier": "prettier --single-quote --list-different **/*.js",
-    "test": "npm run test:prettier && tape test"
+    "test": "mocha"
   },
   "engines": {
     "node": ">=6.6.0"
@@ -32,7 +32,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "prettier": "^1.12.1",
-    "tape": "^4.9.0"
+    "expect.js": "^0.3.1",
+    "mocha": "^5.2.0"
   }
 }
